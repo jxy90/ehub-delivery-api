@@ -1,0 +1,18 @@
+env: local
+database:
+  driver: mysql
+  connection: root:@tcp(localhost:3306)/hublabs_ehub_delivery?charset=utf8
+  logger:
+    kafka:
+      brokers:
+        - localhost:9092
+      topic: sqllog
+behaviorLog:
+  kafka:
+    brokers:
+      - localhost:9092
+    topic: behaviorlog
+services:
+  colleagueApi: https://
+httpPort: 8000
+serviceName: ehub-delivery-api
