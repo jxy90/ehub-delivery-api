@@ -1,0 +1,13 @@
+ehub-delivery-api
+*.exe
+*.db
+tmp
+coverage.out
+.DS_Store
+.vscode/
+.idea/
+request/
+*.sh
+*.zip
+*.gz
+go.sum
