@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/hublabs/common/api"
 	"github.com/hublabs/ehub-delivery-api/models"
 
 	"github.com/labstack/echo"
@@ -14,6 +15,8 @@ type DeliveryController struct{}
 func (c DeliveryController) Init(g echoswagger.ApiGroup) {
 	g.POST("", c.Create).
 		AddParamBody([]models.DeliveryCreateDto{}, "[]DeliveryCreateDto", "[]DeliveryCreateDto", true)
+	g.PATCH("", c.Receipt).
+		AddParamBody([]models.DeliveryReceiptDto{}, "[]DeliveryReceiptDto", "[]DeliveryReceiptDto", true)
 }
 
 func (DeliveryController) Create(c echo.Context) error {
@@ -22,15 +25,36 @@ func (DeliveryController) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
+	var created []models.Delivery
 	for _, param := range params {
-		d, err := param.Translate()
-		if err != err {
-			return c.JSON(http.StatusBadRequest, err)
+		d, err := models.Delivery{}.Create(c.Request().Context(), param)
+		if err != nil {
+			return ReturnError(c, http.StatusInternalServerError, api.Error{
+				Message: err.Error(),
+			})
 		}
-		if err := d.Create(c.Request().Context()); err != nil {
-			return c.JSON(http.StatusInternalServerError, err)
-		}
+		created = append(created, d)
 	}
 
-	return ReturnApiSucc(c, http.StatusCreated, int64(len(params)), nil)
+	return ReturnSuccessWithTotalCountAndItems(c, http.StatusCreated, int64(len(params)), created)
+}
+
+func (DeliveryController) Receipt(c echo.Context) error {
+	var params []models.DeliveryReceiptDto
+	if err := c.Bind(&params); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	var updateds []models.Delivery
+	for _, param := range params {
+		d, err := models.Delivery{}.Receipt(c.Request().Context(), param)
+		if err != nil {
+			return ReturnError(c, http.StatusInternalServerError, api.Error{
+				Message: err.Error(),
+			})
+		}
+		updateds = append(updateds, d)
+	}
+
+	return ReturnSuccessWithTotalCountAndItems(c, http.StatusCreated, int64(len(updateds)), updateds)
 }

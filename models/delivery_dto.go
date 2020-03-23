@@ -14,24 +14,7 @@ type DeliveryItemCreateDto struct {
 	Qty   int64 `json:"qty"`
 }
 
-func (dto DeliveryCreateDto) Translate() (Delivery, error) {
-	var items []DeliveryItem
-	for _, i := range dto.Items {
-		item := DeliveryItem{
-			SkuId:       i.SkuId,
-			ShipmentQty: i.Qty,
-			ReceiptQty:  0,
-			Committed:   Committed{}.newCommitted(dto.CreatedBy),
-		}
-		items = append(items, item)
-	}
-	return Delivery{
-		ShipmentLocationId: dto.ShipmentLocationId,
-		ReceiptLocationId:  dto.ReceiptLocationId,
-		WaybillNo:          dto.WaybillNo,
-		BoxNo:              dto.BoxNo,
-		Status:             Shipment.Code,
-		Items:              items,
-		Committed:          Committed{}.newCommitted(dto.CreatedBy),
-	}, nil
+type DeliveryReceiptDto struct {
+	DeliveryId int64  `json:"deliveryId"`
+	UpdatedBy  string `json:"updatedBy"`
 }
