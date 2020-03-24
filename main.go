@@ -7,19 +7,19 @@ import (
 	"sort"
 	"time"
 
-	"github.com/go-xorm/xorm"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/pangpanglabs/goutils/echomiddleware"
-	"github.com/urfave/cli"
-
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/mattn/go-sqlite3"
-
 	"github.com/hublabs/ehub-delivery-api/config"
 	"github.com/hublabs/ehub-delivery-api/controllers"
 	"github.com/hublabs/ehub-delivery-api/models"
+
+	"github.com/go-xorm/xorm"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/pangpanglabs/echoswagger"
+	"github.com/pangpanglabs/goutils/echomiddleware"
+	"github.com/urfave/cli/v2"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "ehub-delivery-api"
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:  "api-server",
 			Usage: "run api server",

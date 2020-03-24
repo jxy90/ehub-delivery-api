@@ -27,42 +27,36 @@ func QueryParam(name string, ctx echo.Context) string {
 	return params.Get(name)
 }
 
-func ReturnApiSucc(ctx echo.Context, status int, totalCount int64, items interface{}) error {
+func ReturnSuccessWithTotalCountAndItems(ctx echo.Context, status int, totalCount int64, items interface{}) error {
 	return ctx.JSON(status, api.Result{
 		Success: true,
 		Result:  api.ArrayResult{TotalCount: totalCount, Items: items},
 	})
 }
-func ReturnResultApiSucc(ctx echo.Context, status int, result interface{}) error {
+func ReturnSuccessWithResult(ctx echo.Context, status int, result interface{}) error {
 	return ctx.JSON(status, api.Result{
 		Success: true,
 		Result:  result,
 	})
 }
 
-func ReturnApiWarn(ctx echo.Context, status int, apiError api.Error, err error) error {
-	str := ""
-	if err != nil {
-		str = fmt.Sprint(err)
-	}
-
+func ReturnError(ctx echo.Context, status int, apiError api.Error) error {
 	return ctx.JSON(status, api.Result{
 		Success: false,
 		Error: api.Error{
 			Code:    apiError.Code,
-			Message: fmt.Sprintf(apiError.Message),
-			Details: ProjectName + str,
+			Message: "[" + ProjectName + "] - " + fmt.Sprintf(apiError.Message),
 		},
 	})
 }
 
-func ReturnApiParameterWarn(c echo.Context, parameters []string) error {
+func ReturnErrorWithParameter(c echo.Context, parameters []string) error {
 	return c.JSON(http.StatusBadRequest, api.Result{
 		Success: false,
 		Error: api.Error{
 			Code:    api.ErrorParameter.Code,
-			Message: fmt.Sprintf(api.ErrorParameter.Message),
-			Details: ProjectName + fmt.Sprint(parameters),
+			Message: "[" + ProjectName + "] - " + fmt.Sprintf(api.ErrorParameter.Message),
+			Details: fmt.Sprint(parameters),
 		},
 	})
 }
