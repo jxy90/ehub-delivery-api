@@ -15,6 +15,12 @@ type DeliveryItemCreateDto struct {
 }
 
 type DeliveryReceiptDto struct {
-	DeliveryId int64  `json:"deliveryId"`
-	UpdatedBy  string `json:"updatedBy"`
+	DeliveryId int64                    `json:"deliveryId"`
+	Items      []DeliveryItemReceiptDto `json:"items"`
+	UpdatedBy  string                   `json:"updatedBy"`
+}
+
+type DeliveryItemReceiptDto struct {
+	SkuId int64 `json:"skuId"`
+	Qty   int64 `json:"qty"`
 }

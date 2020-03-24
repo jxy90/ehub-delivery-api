@@ -45,7 +45,7 @@ func ReturnError(ctx echo.Context, status int, apiError api.Error) error {
 		Success: false,
 		Error: api.Error{
 			Code:    apiError.Code,
-			Message: "[" + ProjectName + "] - " + fmt.Sprintf(apiError.Message),
+			Message: fmt.Sprintf("%v-%v", ProjectName, apiError.Message),
 		},
 	})
 }
@@ -55,7 +55,7 @@ func ReturnErrorWithParameter(c echo.Context, parameters []string) error {
 		Success: false,
 		Error: api.Error{
 			Code:    api.ErrorParameter.Code,
-			Message: "[" + ProjectName + "] - " + fmt.Sprintf(api.ErrorParameter.Message),
+			Message: fmt.Sprintf("%v-%v", ProjectName, api.ErrorParameter.Message),
 			Details: fmt.Sprint(parameters),
 		},
 	})

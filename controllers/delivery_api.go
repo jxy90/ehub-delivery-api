@@ -22,7 +22,9 @@ func (c DeliveryController) Init(g echoswagger.ApiGroup) {
 func (DeliveryController) Create(c echo.Context) error {
 	var params []models.DeliveryCreateDto
 	if err := c.Bind(&params); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return ReturnError(c, http.StatusBadRequest, api.Error{
+			Message: err.Error(),
+		})
 	}
 
 	var created []models.Delivery
@@ -42,7 +44,9 @@ func (DeliveryController) Create(c echo.Context) error {
 func (DeliveryController) Receipt(c echo.Context) error {
 	var params []models.DeliveryReceiptDto
 	if err := c.Bind(&params); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return ReturnError(c, http.StatusBadRequest, api.Error{
+			Message: err.Error(),
+		})
 	}
 
 	var updateds []models.Delivery
