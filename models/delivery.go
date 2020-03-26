@@ -3,36 +3,21 @@ package models
 import (
 	"context"
 	"errors"
-
 	"github.com/hublabs/ehub-delivery-api/factory"
 )
 
-var (
-	DeliveryTableName     = "dlv_delivery"
-	DeliveryItemTableName = "dlv_delivery_item"
-)
-
-func (d *Delivery) TableName() string {
-	return DeliveryTableName
-}
-
-func (di *DeliveryItem) TableName() string {
-	return DeliveryItemTableName
-}
-
-type Delivery struct {
-	Id                 int64          `json:"id"`
-	ShipmentLocationId int64          `json:"shipmentLocationId" xorm:"index unique(delivery)"`
-	ReceiptLocationId  int64          `json:"receiptLocationId" xorm:"index unique(delivery)"`
-	WaybillNo          string         `json:"waybillNo" xorm:"index unique(delivery)"`
-	BoxNo              string         `json:"boxNo" xorm:"index unique(delivery)"`
-	Status             string         `json:"status"`
-	Items              []DeliveryItem `json:"items" xorm:"-"`
-	PlatformOrderId    string         `json:"platformOrderId"`
+type DeliveryForStore struct {
+	Id                 int64                  `json:"id"`
+	ShipmentLocationId int64                  `json:"shipmentLocationId" xorm:"index unique(delivery)"`
+	ReceiptLocationId  int64                  `json:"receiptLocationId" xorm:"index unique(delivery)"`
+	WaybillNo          string                 `json:"waybillNo" xorm:"index unique(delivery)"`
+	BoxNo              string                 `json:"boxNo" xorm:"index unique(delivery)"`
+	Status             string                 `json:"status"`
+	Items              []DeliveryItemForStore `json:"items" xorm:"-"`
 	Committed          `xorm:"extends"`
 }
 
-type DeliveryItem struct {
+type DeliveryItemForStore struct {
 	Id          int64 `json:"id"`
 	DeliveryId  int64 `json:"deliveryId" xorm:"index unique(delivery_item)"`
 	SkuId       int64 `json:"skuId" xorm:"index unique(delivery_item)"`
@@ -41,50 +26,31 @@ type DeliveryItem struct {
 	Committed   `xorm:"extends"`
 }
 
-func (Delivery) Create(ctx context.Context, param DeliveryCreateDto) (Delivery, error) {
-	var items []DeliveryItem
-	for _, i := range param.Items {
-		item := DeliveryItem{
-			SkuId:       i.SkuId,
-			ShipmentQty: i.Qty,
-			ReceiptQty:  0,
-			Committed:   Committed{}.newCommitted(param.CreatedBy),
-		}
-		items = append(items, item)
-	}
-	d := Delivery{
-		ShipmentLocationId: param.ShipmentLocationId,
-		ReceiptLocationId:  param.ReceiptLocationId,
-		WaybillNo:          param.WaybillNo,
-		BoxNo:              param.BoxNo,
-		Status:             Shipment.Code,
-		Items:              items,
-		Committed:          Committed{}.newCommitted(param.CreatedBy),
-	}
+func (d *DeliveryForStore) ship(ctx context.Context) error {
 	if _, err := factory.
 		DB(ctx).
-		Table(DeliveryTableName).
-		Insert(&d); err != nil {
-		return Delivery{}, err
+		Table(DeliveryForStoreTableName).
+		Insert(d); err != nil {
+		return err
 	}
 	for i := range d.Items {
 		d.Items[i].DeliveryId = d.Id
 		d.Items[i].Committed = d.Committed
 	}
-	counts, err := DeliveryItem{}.insertDeliveryItems(ctx, d.Items)
+	counts, err := DeliveryItemForStore{}.insertDeliveryItems(ctx, d.Items)
 	if err != nil {
-		return Delivery{}, err
+		return err
 	}
 	if counts != int64(len(d.Items)) {
-		return Delivery{}, errors.New("fail to insert partial data")
+		return errors.New("fail to insert partial data")
 	}
-	return d, nil
+	return nil
 }
 
-func (DeliveryItem) insertDeliveryItems(ctx context.Context, items []DeliveryItem) (int64, error) {
+func (DeliveryItemForStore) insertDeliveryItems(ctx context.Context, items []DeliveryItemForStore) (int64, error) {
 	counts, err := factory.
 		DB(ctx).
-		Table(DeliveryItemTableName).
+		Table(DeliveryItemForStoreTableName).
 		Insert(items)
 	if err != nil {
 		return 0, err
@@ -92,56 +58,137 @@ func (DeliveryItem) insertDeliveryItems(ctx context.Context, items []DeliveryIte
 	return counts, nil
 }
 
-func (Delivery) getById(ctx context.Context, id int64) (Delivery, error) {
-	delivery := Delivery{}
+func (DeliveryItemForStore) getById(ctx context.Context, id int64) (DeliveryForStore, error) {
+	delivery := DeliveryForStore{}
 	if _, err := factory.
 		DB(ctx).
-		Table(DeliveryTableName).Alias("d").
+		Table(DeliveryForStoreTableName).Alias("d").
 		Where("d.id = ?", id).
 		Get(&delivery); err != nil {
-		return Delivery{}, err
+		return DeliveryForStore{}, err
 	}
 	if err := factory.
 		DB(ctx).
-		Table(DeliveryItemTableName).Alias("di").
+		Table(DeliveryItemForStoreTableName).Alias("di").
 		Where("di.delivery_id = ?", delivery.Id).
 		Find(&delivery.Items); err != nil {
-		return Delivery{}, err
+		return DeliveryForStore{}, err
 	}
 	return delivery, nil
 }
 
-func (Delivery) Receipt(ctx context.Context, param DeliveryReceiptDto) (Delivery, error) {
-	for _, item := range param.Items {
-		di := DeliveryItem{
-			ReceiptQty: item.Qty,
-			Committed: Committed{
-				UpdatedBy: param.UpdatedBy,
-			},
-		}
+func (d *DeliveryForStore) receive(ctx context.Context) error {
+	for _, item := range d.Items {
 		if _, err := factory.
 			DB(ctx).
-			Table(DeliveryItemTableName).
-			Where("delivery_id = ? and sku_id = ?", param.DeliveryId, item.SkuId).
+			Table(DeliveryItemForStoreTableName).
+			Where("delivery_id = ? and sku_id = ?", item.DeliveryId, item.SkuId).
 			Cols("receipt_qty, updated_by").
-			Update(di); err != nil {
-			return Delivery{}, err
+			Update(&item); err != nil {
+			return err
 		}
-	}
-	d := Delivery{
-		Id:     param.DeliveryId,
-		Status: Receipt.Code,
-		Committed: Committed{
-			UpdatedBy: param.UpdatedBy,
-		},
 	}
 	if _, err := factory.
 		DB(ctx).
-		Table(DeliveryTableName).
+		Table(DeliveryForStoreTableName).
 		ID(d.Id).
 		Cols("status, updated_by").
-		Update(&d); err != nil {
-		return Delivery{}, err
+		Update(d); err != nil {
+		return err
 	}
-	return d, nil
+	return nil
+}
+
+type DeliveryForPlant struct {
+	Id                 int64                  `json:"id"`
+	ShipmentLocationId int64                  `json:"shipmentLocationId" xorm:"index unique(delivery)"`
+	ReceiptLocationId  int64                  `json:"receiptLocationId" xorm:"index unique(delivery)"`
+	WaybillNo          string                 `json:"waybillNo" xorm:"index unique(delivery)"`
+	BoxNo              string                 `json:"boxNo" xorm:"index unique(delivery)"`
+	Status             string                 `json:"status"`
+	Items              []DeliveryItemForPlant `json:"items" xorm:"-"`
+	PlatformOrderId    string                 `json:"platformOrderId" xorm:"index"`
+	Committed          `xorm:"extends"`
+}
+
+type DeliveryItemForPlant struct {
+	Id          int64 `json:"id"`
+	DeliveryId  int64 `json:"deliveryId" xorm:"index unique(delivery_item)"`
+	SkuId       int64 `json:"skuId" xorm:"index unique(delivery_item)"`
+	ShipmentQty int64 `json:"shipmentQty"`
+	ReceiptQty  int64 `json:"receiptQty"`
+	Committed   `xorm:"extends"`
+}
+
+func (d *DeliveryForPlant) ship(ctx context.Context) error {
+	if _, err := factory.
+		DB(ctx).
+		Table(DeliveryForPlantTableName).
+		Insert(d); err != nil {
+		return err
+	}
+	for i := range d.Items {
+		d.Items[i].DeliveryId = d.Id
+		d.Items[i].Committed = d.Committed
+	}
+	counts, err := DeliveryItemForPlant{}.insertDeliveryItems(ctx, d.Items)
+	if err != nil {
+		return err
+	}
+	if counts != int64(len(d.Items)) {
+		return errors.New("fail to insert partial data")
+	}
+	return nil
+}
+
+func (DeliveryItemForPlant) insertDeliveryItems(ctx context.Context, items []DeliveryItemForPlant) (int64, error) {
+	counts, err := factory.
+		DB(ctx).
+		Table(DeliveryItemForPlantTableName).
+		Insert(items)
+	if err != nil {
+		return 0, err
+	}
+	return counts, nil
+}
+
+func (DeliveryForPlant) getById(ctx context.Context, id int64) (DeliveryForPlant, error) {
+	delivery := DeliveryForPlant{}
+	if _, err := factory.
+		DB(ctx).
+		Table(DeliveryForPlantTableName).Alias("d").
+		Where("d.id = ?", id).
+		Get(&delivery); err != nil {
+		return DeliveryForPlant{}, err
+	}
+	if err := factory.
+		DB(ctx).
+		Table(DeliveryItemForPlantTableName).Alias("di").
+		Where("di.delivery_id = ?", delivery.Id).
+		Find(&delivery.Items); err != nil {
+		return DeliveryForPlant{}, err
+	}
+	return delivery, nil
+}
+
+func (d *DeliveryForPlant) receive(ctx context.Context) error {
+	for _, item := range d.Items {
+		if _, err := factory.
+			DB(ctx).
+			Table(DeliveryItemForPlantTableName).
+			Where("delivery_id = ? and sku_id = ?", item.DeliveryId, item.SkuId).
+			Cols("receipt_qty, updated_by").
+			Update(&item); err != nil {
+			return err
+		}
+	}
+	if _, err := factory.
+		DB(ctx).
+		Table(DeliveryForPlantTableName).
+		ID(d.Id).
+		Cols("status, updated_by").
+		Update(d); err != nil {
+		return err
+	}
+	return nil
 }

@@ -3,6 +3,7 @@ package models
 type StockCreateDto struct {
 	LocationId int64                `json:"locationId"`
 	Items      []StockItemCreateDto `json:"items"`
+	Type       string               `json:"type"` // todo 以后从token中获取
 	CreatedBy  string               `json:"createdBy"`
 }
 

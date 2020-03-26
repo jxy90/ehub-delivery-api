@@ -1,12 +1,13 @@
-POST http://localhost:8000/v1/delivery
+POST {{delivery-api}}/v1/delivery
 Content-Type: application/json
+Authorization: {{token}}
 
 [{
   "shipmentLocationId": 1,
   "receiptLocationId": 2,
   "waybillNo": "100",
   "boxNo": "100",
-  "type": "HubLabs",
+  "type": "store",
   "items": [
     {
       "skuId": 1,
@@ -23,7 +24,7 @@ Content-Type: application/json
   "receiptLocationId": 2,
   "waybillNo": "210",
   "boxNo": "210",
-  "type": "HubLabs",
+  "type": "store",
   "items": [
     {
       "skuId": 66,
@@ -38,12 +39,91 @@ Content-Type: application/json
 }]
 
 ###
-PATCH http://localhost:8000/v1/delivery
+PATCH {{delivery-api}}/v1/delivery
 Content-Type: application/json
+Authorization: {{token}}
+
+[{
+  "deliveryId": 1,
+  "type": "store",
+  "items": [
+    {
+      "skuId": 1,
+      "qty": 10
+    },
+    {
+      "skuId": 2,
+      "qty": 3
+    }
+  ],
+  "updatedBy": "li.dongxun2"
+},
+  {
+    "deliveryId": 2,
+    "type": "store",
+    "items": [
+      {
+        "skuId": 66,
+        "qty": 10
+      },
+      {
+        "skuId": 55,
+        "qty": 3
+      }
+    ],
+    "updatedBy": "li.dongxun2"
+  }]
+
+###
+POST {{delivery-api}}/v1/delivery
+Content-Type: application/json
+Authorization: {{token}}
+
+[{
+  "shipmentLocationId": 1,
+  "receiptLocationId": 2,
+  "waybillNo": "100",
+  "boxNo": "100",
+  "type": "plant",
+  "items": [
+    {
+      "skuId": 1,
+      "qty": 10
+    },
+    {
+      "skuId": 2,
+      "qty": 2
+    }
+  ],
+  "createdBy": "li.dongxun"
+}, {
+  "shipmentLocationId": 1,
+  "receiptLocationId": 2,
+  "waybillNo": "210",
+  "boxNo": "210",
+  "type": "plant",
+  "items": [
+    {
+      "skuId": 66,
+      "qty": 10
+    },
+    {
+      "skuId": 55,
+      "qty": 2
+    }
+  ],
+  "createdBy": "li.dongxun"
+}]
+
+###
+PATCH {{delivery-api}}/v1/delivery
+Content-Type: application/json
+Authorization: {{token}}
 
 [
   {
     "deliveryId": 1,
+    "type": "plant",
     "items": [
       {
         "skuId": 1,
@@ -58,6 +138,17 @@ Content-Type: application/json
   },
   {
     "deliveryId": 2,
+    "type": "plant",
+    "items": [
+      {
+        "skuId": 66,
+        "qty": 10
+      },
+      {
+        "skuId": 55,
+        "qty": 3
+      }
+    ],
     "updatedBy": "li.dongxun2"
   }
 ]

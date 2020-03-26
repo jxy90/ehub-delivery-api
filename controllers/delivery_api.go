@@ -13,23 +13,23 @@ import (
 type DeliveryController struct{}
 
 func (c DeliveryController) Init(g echoswagger.ApiGroup) {
-	g.POST("", c.Create).
-		AddParamBody([]models.DeliveryCreateDto{}, "[]DeliveryCreateDto", "[]DeliveryCreateDto", true)
-	g.PATCH("", c.Receipt).
-		AddParamBody([]models.DeliveryReceiptDto{}, "[]DeliveryReceiptDto", "[]DeliveryReceiptDto", true)
+	g.POST("", c.Ship).
+		AddParamBody([]models.ShipmentDto{}, "[]ShipmentDto", "[]ShipmentDto", true)
+	g.PATCH("", c.Receive).
+		AddParamBody([]models.ReceiptDto{}, "[]ReceiptDto", "[]ReceiptDto", true)
 }
 
-func (DeliveryController) Create(c echo.Context) error {
-	var params []models.DeliveryCreateDto
+func (DeliveryController) Ship(c echo.Context) error {
+	var params []models.ShipmentDto
 	if err := c.Bind(&params); err != nil {
 		return ReturnError(c, http.StatusBadRequest, api.Error{
 			Message: err.Error(),
 		})
 	}
 
-	var created []models.Delivery
+	var created []models.DeliveryProcessor
 	for _, param := range params {
-		d, err := models.Delivery{}.Create(c.Request().Context(), param)
+		d, err := models.Ship(c.Request().Context(), param)
 		if err != nil {
 			return ReturnError(c, http.StatusInternalServerError, api.Error{
 				Message: err.Error(),
@@ -41,17 +41,17 @@ func (DeliveryController) Create(c echo.Context) error {
 	return ReturnSuccessWithTotalCountAndItems(c, http.StatusCreated, int64(len(params)), created)
 }
 
-func (DeliveryController) Receipt(c echo.Context) error {
-	var params []models.DeliveryReceiptDto
+func (DeliveryController) Receive(c echo.Context) error {
+	var params []models.ReceiptDto
 	if err := c.Bind(&params); err != nil {
 		return ReturnError(c, http.StatusBadRequest, api.Error{
 			Message: err.Error(),
 		})
 	}
 
-	var updateds []models.Delivery
+	var updateds []models.DeliveryProcessor
 	for _, param := range params {
-		d, err := models.Delivery{}.Receipt(c.Request().Context(), param)
+		d, err := models.Receive(c.Request().Context(), param)
 		if err != nil {
 			return ReturnError(c, http.StatusInternalServerError, api.Error{
 				Message: err.Error(),

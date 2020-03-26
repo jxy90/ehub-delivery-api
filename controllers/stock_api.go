@@ -17,18 +17,18 @@ type StockController struct{}
 
 func (c StockController) Init(g echoswagger.ApiGroup) {
 	g.POST("", c.Create).
-		AddParamBody([]models.StockCreateDto{}, "[]StockCreateDto", "[]StockCreateDto", false)
+		AddParamBody(models.StockCreateDto{}, "StockCreateDto", "StockCreateDto", false)
 }
 
 func (StockController) Create(c echo.Context) error {
 	if strings.Index(c.Request().Header.Get("Content-Type"), "application/json") == 0 {
-		var params []models.StockCreateDto
-		if err := c.Bind(&params); err != nil {
+		var param models.StockCreateDto
+		if err := c.Bind(&param); err != nil {
 			return ReturnError(c, http.StatusBadRequest, api.Error{
 				Message: err.Error(),
 			})
 		}
-		count, err := models.Stock{}.BulkCreateStockFromDto(c.Request().Context(), params)
+		count, err := models.BulkCreateStockFromDto(c.Request().Context(), param)
 		if err != nil {
 			return ReturnError(c, http.StatusInternalServerError, api.Error{
 				Message: err.Error(),
@@ -61,13 +61,13 @@ func (StockController) Create(c echo.Context) error {
 			})
 		}
 
-		count, err := models.Stock{}.BulkCreateStockFromExcel(c.Request().Context(), locationId, createdBy, excel)
+		stockType := c.FormValue("type")
+		count, err := models.BulkCreateStockFromExcel(c.Request().Context(), locationId, createdBy, stockType, excel)
 		if err != nil {
 			return ReturnError(c, http.StatusInternalServerError, api.Error{
 				Message: err.Error(),
 			})
 		}
-
 		return ReturnSuccessWithTotalCountAndItems(c, http.StatusOK, count, nil)
 	}
 
