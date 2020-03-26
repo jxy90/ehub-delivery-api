@@ -7,7 +7,6 @@ coverage.out
 .vscode/
 .idea/
 request/
-*.sh
 *.zip
 *.gz
 go.sum
