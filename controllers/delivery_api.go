@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/hublabs/common/api"
-	"github.com/hublabs/ehub-delivery-api/models"
+	"github.com/hublabs/delivery-api/models"
 
 	"github.com/labstack/echo"
 	"github.com/pangpanglabs/echoswagger"
@@ -60,5 +60,5 @@ func (DeliveryController) Receive(c echo.Context) error {
 		updateds = append(updateds, d)
 	}
 
-	return ReturnSuccessWithTotalCountAndItems(c, http.StatusCreated, int64(len(updateds)), updateds)
+	return ReturnSuccessWithTotalCountAndItems(c, http.StatusAccepted, int64(len(updateds)), updateds)
 }

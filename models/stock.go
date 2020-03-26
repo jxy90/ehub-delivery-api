@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/hublabs/ehub-delivery-api/factory"
+	"github.com/hublabs/delivery-api/factory"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
@@ -84,6 +84,45 @@ func (StockForStore) bulkCreateStockFromExcel(ctx context.Context, locationId in
 	return int64(len(stocks)), nil
 }
 
+func (s *StockForStore) GetOne(ctx context.Context) (StockForStore, error) {
+	var found StockForStore
+	if _, err := factory.
+		DB(ctx).
+		Table(StockForStoreTableName).
+		Where("location_id = ? and sku_id = ?", s.LocationId, s.SkuId).
+		Get(&found); err != nil {
+		return StockForStore{}, err
+	}
+	return found, nil
+}
+
+func (s *StockForStore) upsertQty(ctx context.Context) error {
+	count, err := factory.
+		DB(ctx).
+		Table(StockForStoreTableName).
+		Where("location_id = ? and sku_id = ?", s.LocationId, s.SkuId).
+		Cols("qty, updated_by").
+		Update(s)
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		creating := StockForStore{
+			LocationId: s.LocationId,
+			SkuId:      s.SkuId,
+			Qty:        s.Qty,
+			Committed:  s.newCommitted(s.Committed.UpdatedBy),
+		}
+		if _, err := factory.
+			DB(ctx).
+			Table(StockForStoreTableName).
+			Insert(creating); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type StockForPlant struct {
 	Id         int64 `json:"id"`
 	LocationId int64 `json:"locationId" xorm:"index unique(stock)"`
@@ -157,4 +196,43 @@ func (StockForPlant) bulkCreateStockFromExcel(ctx context.Context, locationId in
 		return 0, err
 	}
 	return int64(len(stocks)), nil
+}
+
+func (s *StockForPlant) GetOne(ctx context.Context) (StockForPlant, error) {
+	var found StockForPlant
+	if _, err := factory.
+		DB(ctx).
+		Table(StockForPlantTableName).
+		Where("location_id = ? and sku_id = ?", s.LocationId, s.SkuId).
+		Get(&found); err != nil {
+		return StockForPlant{}, err
+	}
+	return found, nil
+}
+
+func (s *StockForPlant) upsertQty(ctx context.Context) error {
+	count, err := factory.
+		DB(ctx).
+		Table(StockForPlantTableName).
+		Where("location_id = ? and sku_id = ?", s.LocationId, s.SkuId).
+		Cols("qty, updated_by").
+		Update(s)
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		creating := StockForPlant{
+			LocationId: s.LocationId,
+			SkuId:      s.SkuId,
+			Qty:        s.Qty,
+			Committed:  s.newCommitted(s.Committed.UpdatedBy),
+		}
+		if _, err := factory.
+			DB(ctx).
+			Table(StockForPlantTableName).
+			Insert(creating); err != nil {
+			return err
+		}
+	}
+	return nil
 }

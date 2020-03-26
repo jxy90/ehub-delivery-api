@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 	"errors"
-	"github.com/hublabs/ehub-delivery-api/factory"
+	"github.com/hublabs/delivery-api/factory"
 )
 
 type DeliveryForStore struct {
@@ -99,6 +99,63 @@ func (d *DeliveryForStore) receive(ctx context.Context) error {
 	return nil
 }
 
+func (d *DeliveryForStore) calculateStock(ctx context.Context) error {
+	stocks, err := d.translateToStockByStatus()
+	if err != nil {
+		return err
+	}
+	for _, stock := range stocks {
+		inputStock := stock.(*StockForStore)
+		foundStock, err := inputStock.GetOne(ctx)
+		if err != nil {
+			return err
+		}
+		updateStock := StockForStore{
+			LocationId: inputStock.LocationId,
+			SkuId:      inputStock.SkuId,
+			Qty:        inputStock.Qty + foundStock.Qty,
+			Committed:  Committed{UpdatedBy: inputStock.UpdatedBy},
+		}
+		if err := updateStock.upsertQty(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *DeliveryForStore) translateToStockByStatus() ([]StockProcessor, error) {
+	var stocks []StockProcessor
+	switch d.Status {
+	case Shipment.Code:
+		for _, item := range d.Items {
+			stock := &StockForStore{
+				LocationId: d.ShipmentLocationId,
+				SkuId:      item.SkuId,
+				Qty:        item.ShipmentQty * -1,
+				Committed: Committed{
+					UpdatedBy: d.UpdatedBy,
+				},
+			}
+			stocks = append(stocks, stock)
+		}
+		return stocks, nil
+	case Receipt.Code:
+		for _, item := range d.Items {
+			stock := &StockForStore{
+				LocationId: d.ReceiptLocationId,
+				SkuId:      item.SkuId,
+				Qty:        item.ReceiptQty,
+				Committed: Committed{
+					UpdatedBy: d.UpdatedBy,
+				},
+			}
+			stocks = append(stocks, stock)
+		}
+		return stocks, nil
+	}
+	return nil, errors.New("not support status")
+}
+
 type DeliveryForPlant struct {
 	Id                 int64                  `json:"id"`
 	ShipmentLocationId int64                  `json:"shipmentLocationId" xorm:"index unique(delivery)"`
@@ -191,4 +248,61 @@ func (d *DeliveryForPlant) receive(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func (d *DeliveryForPlant) calculateStock(ctx context.Context) error {
+	stocks, err := d.translateToStockByStatus()
+	if err != nil {
+		return err
+	}
+	for _, stock := range stocks {
+		inputStock := stock.(*StockForPlant)
+		foundStock, err := inputStock.GetOne(ctx)
+		if err != nil {
+			return err
+		}
+		updateStock := StockForPlant{
+			LocationId: inputStock.LocationId,
+			SkuId:      inputStock.SkuId,
+			Qty:        inputStock.Qty + foundStock.Qty,
+			Committed:  Committed{UpdatedBy: inputStock.UpdatedBy},
+		}
+		if err := updateStock.upsertQty(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *DeliveryForPlant) translateToStockByStatus() ([]StockProcessor, error) {
+	var stocks []StockProcessor
+	switch d.Status {
+	case Shipment.Code:
+		for _, item := range d.Items {
+			stock := &StockForPlant{
+				LocationId: d.ShipmentLocationId,
+				SkuId:      item.SkuId,
+				Qty:        item.ShipmentQty * -1,
+				Committed: Committed{
+					UpdatedBy: d.UpdatedBy,
+				},
+			}
+			stocks = append(stocks, stock)
+		}
+		return stocks, nil
+	case Receipt.Code:
+		for _, item := range d.Items {
+			stock := &StockForPlant{
+				LocationId: d.ReceiptLocationId,
+				SkuId:      item.SkuId,
+				Qty:        item.ReceiptQty,
+				Committed: Committed{
+					UpdatedBy: d.UpdatedBy,
+				},
+			}
+			stocks = append(stocks, stock)
+		}
+		return stocks, nil
+	}
+	return nil, errors.New("not support status")
 }

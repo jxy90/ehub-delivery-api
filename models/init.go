@@ -11,3 +11,10 @@ func Init(db *xorm.Engine) error {
 	}
 	return nil
 }
+
+func DropTables(db *xorm.Engine) error {
+	return db.DropTables(
+		new(DeliveryForStore), new(DeliveryItemForStore),
+		new(DeliveryForPlant), new(DeliveryItemForPlant),
+		new(StockForStore), new(StockForPlant))
+}

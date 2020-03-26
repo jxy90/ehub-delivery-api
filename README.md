@@ -1,4 +1,4 @@
-# ehub-delivery-api
+# delivery-api
 ## code style ref 
 * kr: https://github.com/TangoEnSkai/uber-go-style-guide-kr
 * cn: https://github.com/xxjwxc/uber_go_guide_cn
@@ -10,7 +10,7 @@
 * https://github.com/urfave/cli/blob/master/docs/v2/manual.md#getting-started
 #### commands
 * go install
-* ehub-delivery-api api-server
+* delivery-api api-server
 
 ## Library 
 ### go excelize

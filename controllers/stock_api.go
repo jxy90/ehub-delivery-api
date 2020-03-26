@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hublabs/common/api"
-	"github.com/hublabs/ehub-delivery-api/models"
+	"github.com/hublabs/delivery-api/models"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/labstack/echo"

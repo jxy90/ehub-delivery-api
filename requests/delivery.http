@@ -1,3 +1,4 @@
+### store ship
 POST {{delivery-api}}/v1/delivery
 Content-Type: application/json
 Authorization: {{token}}
@@ -18,7 +19,7 @@ Authorization: {{token}}
       "qty": 2
     }
   ],
-  "createdBy": "li.dongxun"
+  "shippedBy": "li.dongxun"
 }, {
   "shipmentLocationId": 1,
   "receiptLocationId": 2,
@@ -35,31 +36,34 @@ Authorization: {{token}}
       "qty": 2
     }
   ],
-  "createdBy": "li.dongxun"
+  "shippedBy": "li.dongxun"
 }]
 
-###
+### store receive
 PATCH {{delivery-api}}/v1/delivery
 Content-Type: application/json
 Authorization: {{token}}
 
-[{
-  "deliveryId": 1,
-  "type": "store",
-  "items": [
-    {
-      "skuId": 1,
-      "qty": 10
-    },
-    {
-      "skuId": 2,
-      "qty": 3
-    }
-  ],
-  "updatedBy": "li.dongxun2"
-},
+[
+  {
+    "deliveryId": 1,
+    "receiptLocationId": 2,
+    "type": "store",
+    "items": [
+      {
+        "skuId": 1,
+        "qty": 10
+      },
+      {
+        "skuId": 2,
+        "qty": 3
+      }
+    ],
+    "receiptedBy": "li.dongxun2"
+  },
   {
     "deliveryId": 2,
+    "receiptLocationId": 2,
     "type": "store",
     "items": [
       {
@@ -71,10 +75,11 @@ Authorization: {{token}}
         "qty": 3
       }
     ],
-    "updatedBy": "li.dongxun2"
-  }]
+    "receiptedBy": "li.dongxun2"
+  }
+]
 
-###
+### plant ship
 POST {{delivery-api}}/v1/delivery
 Content-Type: application/json
 Authorization: {{token}}
@@ -95,7 +100,7 @@ Authorization: {{token}}
       "qty": 2
     }
   ],
-  "createdBy": "li.dongxun"
+  "shippedBy": "li.dongxun"
 }, {
   "shipmentLocationId": 1,
   "receiptLocationId": 2,
@@ -112,10 +117,10 @@ Authorization: {{token}}
       "qty": 2
     }
   ],
-  "createdBy": "li.dongxun"
+  "shippedBy": "li.dongxun"
 }]
 
-###
+### plant receive
 PATCH {{delivery-api}}/v1/delivery
 Content-Type: application/json
 Authorization: {{token}}
@@ -123,6 +128,7 @@ Authorization: {{token}}
 [
   {
     "deliveryId": 1,
+    "receiptLocationId": 2,
     "type": "plant",
     "items": [
       {
@@ -134,10 +140,11 @@ Authorization: {{token}}
         "qty": 3
       }
     ],
-    "updatedBy": "li.dongxun2"
+    "receiptedBy": "li.dongxun2"
   },
   {
     "deliveryId": 2,
+    "receiptLocationId": 2,
     "type": "plant",
     "items": [
       {
@@ -149,7 +156,7 @@ Authorization: {{token}}
         "qty": 3
       }
     ],
-    "updatedBy": "li.dongxun2"
+    "receiptedBy": "li.dongxun2"
   }
 ]
 
