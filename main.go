@@ -90,6 +90,7 @@ func initEchoApp(xormEngine *xorm.Engine) *echo.Echo {
 	e.Use(echomiddleware.ContextDB(c.ServiceName, db, c.Database.Logger.Kafka))
 
 	controllers.DeliveryController{}.Init(r.Group("Delivery", "/v1/delivery"))
+	controllers.StockController{}.Init(r.Group("Stock", "/v1/stock"))
 	return e
 }
 

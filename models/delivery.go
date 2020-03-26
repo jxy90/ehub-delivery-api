@@ -22,19 +22,20 @@ func (di *DeliveryItem) TableName() string {
 
 type Delivery struct {
 	Id                 int64          `json:"id"`
-	ShipmentLocationId int64          `json:"shipmentLocationId"`
-	ReceiptLocationId  int64          `json:"receiptLocationId"`
-	WaybillNo          string         `json:"waybillNo"`
-	BoxNo              string         `json:"boxNo"`
+	ShipmentLocationId int64          `json:"shipmentLocationId" xorm:"index unique(delivery)"`
+	ReceiptLocationId  int64          `json:"receiptLocationId" xorm:"index unique(delivery)"`
+	WaybillNo          string         `json:"waybillNo" xorm:"index unique(delivery)"`
+	BoxNo              string         `json:"boxNo" xorm:"index unique(delivery)"`
 	Status             string         `json:"status"`
 	Items              []DeliveryItem `json:"items" xorm:"-"`
+	PlatformOrderId    string         `json:"platformOrderId"`
 	Committed          `xorm:"extends"`
 }
 
 type DeliveryItem struct {
 	Id          int64 `json:"id"`
-	DeliveryId  int64 `json:"deliveryId"`
-	SkuId       int64 `json:"skuId"`
+	DeliveryId  int64 `json:"deliveryId" xorm:"index unique(delivery_item)"`
+	SkuId       int64 `json:"skuId" xorm:"index unique(delivery_item)"`
 	ShipmentQty int64 `json:"shipmentQty"`
 	ReceiptQty  int64 `json:"receiptQty"`
 	Committed   `xorm:"extends"`
@@ -111,6 +112,22 @@ func (Delivery) getById(ctx context.Context, id int64) (Delivery, error) {
 }
 
 func (Delivery) Receipt(ctx context.Context, param DeliveryReceiptDto) (Delivery, error) {
+	for _, item := range param.Items {
+		di := DeliveryItem{
+			ReceiptQty: item.Qty,
+			Committed: Committed{
+				UpdatedBy: param.UpdatedBy,
+			},
+		}
+		if _, err := factory.
+			DB(ctx).
+			Table(DeliveryItemTableName).
+			Where("delivery_id = ? and sku_id = ?", param.DeliveryId, item.SkuId).
+			Cols("receipt_qty, updated_by").
+			Update(di); err != nil {
+			return Delivery{}, err
+		}
+	}
 	d := Delivery{
 		Id:     param.DeliveryId,
 		Status: Receipt.Code,

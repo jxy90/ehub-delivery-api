@@ -41,12 +41,25 @@ Content-Type: application/json
 PATCH http://localhost:8000/v1/delivery
 Content-Type: application/json
 
-[{
-  "deliveryId": 1,
-  "updatedBy": "li.dongxun2"
-}, {
-  "deliveryId": 2,
-  "updatedBy": "li.dongxun2"
-}]
+[
+  {
+    "deliveryId": 1,
+    "items": [
+      {
+        "skuId": 1,
+        "qty": 10
+      },
+      {
+        "skuId": 2,
+        "qty": 3
+      }
+    ],
+    "updatedBy": "li.dongxun2"
+  },
+  {
+    "deliveryId": 2,
+    "updatedBy": "li.dongxun2"
+  }
+]
 
 ###

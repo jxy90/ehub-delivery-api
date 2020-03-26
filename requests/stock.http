@@ -1,0 +1,46 @@
+// ref：https://sundo.kim/1032
+POST http://localhost:8000/v1/stock
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="locationId";
+
+1
+
+--WebAppBoundary
+Content-Disposition: form-data; name="createdBy";
+
+li.dongxun
+
+--WebAppBoundary
+Content-Disposition: form-data; name="stockFile"; filename="init_stock.xlsx"
+
+< ../init_stock.xlsx
+--WebAppBoundary--
+
+###
+POST http://localhost:8000/v1/stock
+Content-Type: application/json
+
+[
+  {
+    "locationId": 1,
+    "createdBy": "li.dongxun",
+    "items": [
+      {
+        "skuId": 100,
+        "qty": 10
+      },
+      {
+        "skuId": 200,
+        "qty": 20
+      },
+      {
+        "skuId": 300,
+        "qty": 22
+      }
+    ]
+  }
+]
+
+###

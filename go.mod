@@ -3,6 +3,7 @@ module github.com/hublabs/ehub-delivery-api
 go 1.13
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/go-xorm/xorm v0.7.9
 	github.com/hublabs/common v0.0.0-20200319090403-1a7b8dd485e4
