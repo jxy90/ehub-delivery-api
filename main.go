@@ -7,9 +7,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/hublabs/ehub-delivery-api/config"
-	"github.com/hublabs/ehub-delivery-api/controllers"
-	"github.com/hublabs/ehub-delivery-api/models"
+	"github.com/hublabs/delivery-api/config"
+	"github.com/hublabs/delivery-api/controllers"
+	"github.com/hublabs/delivery-api/models"
 
 	"github.com/go-xorm/xorm"
 	"github.com/labstack/echo"
@@ -32,7 +32,7 @@ func main() {
 	defer xormEngine.Close()
 
 	app := cli.NewApp()
-	app.Name = "ehub-delivery-api"
+	app.Name = "delivery-api"
 	app.Commands = []*cli.Command{
 		{
 			Name:  "api-server",
@@ -66,8 +66,8 @@ func initEchoApp(xormEngine *xorm.Engine) *echo.Echo {
 
 	e := echo.New()
 	r := echoswagger.New(e, "doc", &echoswagger.Info{
-		Title:       "EHub Delivery API",
-		Description: "This is docs for ehub-delivery-api",
+		Title:       "Delivery API",
+		Description: "This is docs for delivery-api",
 		Version:     "1.0.0",
 	})
 	InitControllers(e)

@@ -2,7 +2,7 @@ FROM golang:1.13 AS builder
 
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 WORKDIR /go/src/github.com/hublabs/ehub-delivery-api
-ADD go.mod go.sum ./
+ADD go.mod ./
 RUN go mod download
 ADD . /go/src/github.com/hublabs/ehub-delivery-api
 ENV CGO_ENABLED=0

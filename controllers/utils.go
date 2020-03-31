@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-var ProjectName string = "[ehub-delivery-api]"
+var ProjectName string = "[delivery-api]"
 
 type SearchPageCount struct {
 	SkipCount      int `query:"skipCount"`

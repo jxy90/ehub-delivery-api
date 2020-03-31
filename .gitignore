@@ -10,3 +10,4 @@ request/
 *.zip
 *.gz
 go.sum
+http-client.env.json
