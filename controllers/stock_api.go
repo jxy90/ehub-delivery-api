@@ -28,6 +28,11 @@ func (StockController) Create(c echo.Context) error {
 				Message: err.Error(),
 			})
 		}
+		if err := c.Validate(param); err != nil {
+			return ReturnError(c, http.StatusBadRequest, api.Error{
+				Message: err.Error(),
+			})
+		}
 		count, err := models.BulkCreateStockFromDto(c.Request().Context(), param)
 		if err != nil {
 			return ReturnError(c, http.StatusInternalServerError, api.Error{

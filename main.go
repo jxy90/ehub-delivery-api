@@ -1,16 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/hublabs/delivery-api/config"
 	"github.com/hublabs/delivery-api/controllers"
 	"github.com/hublabs/delivery-api/models"
 
+	"github.com/hublabs/common/api"
+
+	"github.com/go-playground/validator/v10"
 	"github.com/go-xorm/xorm"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -89,6 +94,8 @@ func initEchoApp(xormEngine *xorm.Engine) *echo.Echo {
 	}
 	e.Use(echomiddleware.ContextDB(c.ServiceName, db, c.Database.Logger.Kafka))
 
+	e.Validator = NewValidator()
+
 	controllers.DeliveryController{}.Init(r.Group("Delivery", "/v1/delivery"))
 	controllers.StockController{}.Init(r.Group("Stock", "/v1/stock"))
 	return e
@@ -119,4 +126,26 @@ func InitControllers(e *echo.Echo) {
 	e.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, "pong")
 	})
+}
+
+type Validator struct {
+	validator *validator.Validate
+}
+
+func (cv *Validator) Validate(i interface{}) error {
+	err := cv.validator.Struct(i)
+	if err == nil {
+		return err
+	}
+	if errs, ok := err.(validator.ValidationErrors); ok {
+		msg := make([]string, 0)
+		for _, err := range errs {
+			msg = append(msg, fmt.Sprintf("%v condition: %v ,value: %v", err.Field(), err.ActualTag(), err.Value()))
+		}
+		return api.ErrorInvalidFields.New(err, strings.Join(msg, ","))
+	}
+	return err
+}
+func NewValidator() *Validator {
+	return &Validator{validator: validator.New()}
 }

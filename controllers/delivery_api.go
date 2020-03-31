@@ -26,6 +26,13 @@ func (DeliveryController) Ship(c echo.Context) error {
 			Message: err.Error(),
 		})
 	}
+	for _, v := range params {
+		if err := c.Validate(v); err != nil {
+			return ReturnError(c, http.StatusBadRequest, api.Error{
+				Message: err.Error(),
+			})
+		}
+	}
 
 	var created []models.DeliveryProcessor
 	for _, param := range params {
@@ -47,6 +54,13 @@ func (DeliveryController) Receive(c echo.Context) error {
 		return ReturnError(c, http.StatusBadRequest, api.Error{
 			Message: err.Error(),
 		})
+	}
+	for _, v := range params {
+		if err := c.Validate(v); err != nil {
+			return ReturnError(c, http.StatusBadRequest, api.Error{
+				Message: err.Error(),
+			})
+		}
 	}
 
 	var updateds []models.DeliveryProcessor

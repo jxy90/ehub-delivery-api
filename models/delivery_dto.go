@@ -5,19 +5,19 @@ import (
 )
 
 type ShipmentDto struct {
-	ShipmentLocationId int64             `json:"shipmentLocationId"`
-	ReceiptLocationId  int64             `json:"receiptLocationId"`
-	WaybillNo          string            `json:"waybillNo"`
-	BoxNo              string            `json:"boxNo"`
+	ShipmentLocationId int64             `json:"shipmentLocationId" validate:"required"`
+	ReceiptLocationId  int64             `json:"receiptLocationId" validate:"required"`
+	WaybillNo          string            `json:"waybillNo" validate:"required"`
+	BoxNo              string            `json:"boxNo" validate:"required"`
 	PlatformOrderId    string            `json:"platformOrderId"`
-	Items              []ShipmentItemDto `json:"items"`
-	Type               string            `json:"type"`      // todo 以后从token中获取
-	ShippedBy          string            `json:"shippedBy"` // todo 以后从token中获取
+	Items              []ShipmentItemDto `json:"items" validate:"required,dive,required"`
+	Type               string            `json:"type" validate:"required"`      // todo 以后从token中获取
+	ShippedBy          string            `json:"shippedBy" validate:"required"` // todo 以后从token中获取
 }
 
 type ShipmentItemDto struct {
-	SkuId int64 `json:"skuId"`
-	Qty   int64 `json:"qty"`
+	SkuId int64 `json:"skuId" validate:"required"`
+	Qty   int64 `json:"qty" validate:"required"`
 }
 
 func (d ShipmentDto) translateToDeliveryByType() (DeliveryProcessor, error) {
@@ -68,16 +68,16 @@ func (d ShipmentDto) translateToDeliveryByType() (DeliveryProcessor, error) {
 }
 
 type ReceiptDto struct {
-	DeliveryId        int64            `json:"deliveryId"`
-	ReceiptLocationId int64            `json:"receiptLocationId"`
-	Type              string           `json:"type"` // todo 以后从token中获取
-	Items             []ReceiptItemDto `json:"items"`
-	ReceiptedBy       string           `json:"receiptedBy"` // todo 以后从token中获取
+	DeliveryId        int64            `json:"deliveryId" validate:"required"`
+	ReceiptLocationId int64            `json:"receiptLocationId" validate:"required"`
+	Type              string           `json:"type" validate:"required"` // todo 以后从token中获取
+	Items             []ReceiptItemDto `json:"items" validate:"required,dive,required"`
+	ReceiptedBy       string           `json:"receiptedBy" validate:"required"` // todo 以后从token中获取
 }
 
 type ReceiptItemDto struct {
-	SkuId int64 `json:"skuId"`
-	Qty   int64 `json:"qty"`
+	SkuId int64 `json:"skuId" validate:"required"`
+	Qty   int64 `json:"qty" validate:"required"`
 }
 
 func (d ReceiptDto) translateToDeliveryByType() (DeliveryProcessor, error) {
